@@ -34,3 +34,4 @@ dependencies {
     compile 'com.google.firebase:firebase-auth:11.0.4'
     compile 'com.firebase:firebase-jobdispatcher:0.8.0'
 }
+apply plugin: 'com.google.gms.google-services'

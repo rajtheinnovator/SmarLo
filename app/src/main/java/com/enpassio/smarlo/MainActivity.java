@@ -33,19 +33,31 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
 
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
     LocationRequest locationRequest;
     GoogleApiClient googleApiClient;
     PendingResult<LocationSettingsResult> result;
-    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
-
     boolean isLocationPermissionGranted;
     TextView locationTextView;
     BootCompleted bootCompletedReceiver;
+    ArrayList<Location> locationArrayList;
+    private FirebaseDatabase mFirebaseDatabase;
+    private DatabaseReference mLocationDatabaseReference;
+    private Location location;
+    private ArrayList<HashMap<String, Double>> locationArrayListOfHashMap;
 
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -63,6 +75,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 //        } catch (CameraAccessException e) {
 //            e.printStackTrace();
 //        }
+
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        mLocationDatabaseReference = mFirebaseDatabase.getReference().child("location");
+        locationArrayList = new ArrayList<Location>();
 
         bootCompletedReceiver = new BootCompleted();
 
@@ -234,6 +250,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onLocationChanged(Location location) {
         Log.v("my_tag", "onLocationChanged called");
         locationTextView.setText(String.valueOf(location.getLatitude()));
+        mLocationDatabaseReference.push().setValue(location);
+        readDataFromFirebase();
 
     }
 
@@ -244,5 +262,49 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Toast.makeText(this, "onResume called", Toast.LENGTH_SHORT).show();
         LocalBroadcastManager.getInstance(this).registerReceiver(bootCompletedReceiver,
                 new IntentFilter("com.enpassio.smarlo.BROADCAST_ACTION"));
+    }
+
+    private void readDataFromFirebase() {
+        mLocationDatabaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                    locationArrayListOfHashMap = new ArrayList<HashMap<String, Double>>();
+                    double latitude = Double.parseDouble(childDataSnapshot.child("latitude").getValue().toString());
+                    double longitude = Double.parseDouble(childDataSnapshot.child("longitude").getValue().toString());
+
+
+                    Location location = new Location(LocationManager.GPS_PROVIDER);
+                    location.setLatitude(latitude);
+                    location.setLongitude(longitude);
+                    locationArrayList.add(location);
+
+                    HashMap<String, Double> locHashMap = new HashMap<String, Double>();
+                    locHashMap.put("latitude", latitude);
+                    locHashMap.put("longitude", longitude);
+                    locationArrayListOfHashMap.add(locHashMap);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        Log.v("mmmm", "locationArrayList.size() is: " + locationArrayList.size());
+        if (locationArrayList.size() > 1) {
+            double distance = calculateDistanceBetweenLastTwoRecords(locationArrayList);
+            Log.v("mmmm", "distance is: " + distance);
+
+        }
+    }
+
+    private double calculateDistanceBetweenLastTwoRecords(ArrayList<Location> receivedLocationArrayList) {
+
+        double dist = receivedLocationArrayList.get(receivedLocationArrayList.size() - 1).distanceTo(receivedLocationArrayList.get(receivedLocationArrayList.size() - 2));
+        locationArrayList = new ArrayList<>();
+        return dist;
+
     }
 }
