@@ -1,8 +1,10 @@
 package com.enpassio.smarlo;
 
 import android.Manifest;
+import android.app.AlarmManager;
 import android.app.IntentService;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -29,15 +31,15 @@ import com.google.android.gms.location.LocationServices;
 
 public class LocationService extends IntentService implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, com.google.android.gms.location.LocationListener {
     protected static final String TAG = "my_tag";
-    private static final long START_HANDLER_DELAY = 5000;
-    private static final int GPS_TIME_INTERVAL = 5000; // get gps location every 1 min
-    private static final int GPS_DISTANCE = 0; // set the distance value in meter
+    private static final long START_HANDLER_DELAY = 20000;
+
     Location gpslocation = null;
     LocationManager locMan;
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     private PendingIntent pendingIntent;
     private boolean isReadyToBeSaved = false;
+
     public LocationService() {
         super(TAG);
     }
@@ -94,7 +96,7 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
             public void run() {
                 Toast.makeText(getApplicationContext(), "handler called", Toast.LENGTH_SHORT).show();
                 isReadyToBeSaved = true;
-                handler.postDelayed(this, 5000);
+                handler.postDelayed(this, START_HANDLER_DELAY);
 
             }
         }, START_HANDLER_DELAY);
@@ -158,39 +160,36 @@ public class LocationService extends IntentService implements GoogleApiClient.Co
 
     }
 
-    public void start() {
-        Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
-        if (gpslocation != null)
-            Toast.makeText(this, "gpslocation is: " + gpslocation.getLongitude() + "   " + gpslocation.getLongitude(), Toast.LENGTH_SHORT).show();
-        if (gpslocation != null) {
-            Bundle bundle = new Bundle();
-            bundle.putParcelable("gps", gpslocation);
-            intent.putExtra("bundle", bundle);
-        }
-        getApplicationContext().startService(intent);
-        isReadyToBeSaved = false;
-    }
-
-
-//
 //    public void start() {
-//
-//                       /* Retrieve a PendingIntent that will perform a broadcast */
-//        Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
-//        if (gpslocation!=null)
-//            Toast.makeText(this, "gpslocation is: " + gpslocation.getLongitude() + "   " + gpslocation.getLongitude(), Toast.LENGTH_SHORT).show();
+//        Intent intent = new Intent(getApplicationContext(), AlarmReceiver.class);
 //        if (gpslocation != null) {
+//            Toast.makeText(this, "gpslocation is: " + gpslocation.getLongitude() + "   " + gpslocation.getLongitude(), Toast.LENGTH_SHORT).show();
 //            Bundle bundle = new Bundle();
 //            bundle.putParcelable("gps", gpslocation);
-//            alarmIntent.putExtra("bundle", bundle);
+//            intent.putExtra("bundle", bundle);
 //        }
-//
-//        pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, alarmIntent, 0);
-//
-//        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-//        int interval = 10000;
-//
-//        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
-//        Toast.makeText(this, "Timer started", Toast.LENGTH_LONG).show();
+//        getApplicationContext().startService(intent);
+//        isReadyToBeSaved = false;
 //    }
+
+    public void start() {
+
+                       /* Retrieve a PendingIntent that will perform a broadcast */
+        Intent alarmIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
+        if (gpslocation != null) {
+            Toast.makeText(this, "gpslocation is: " + gpslocation.getLongitude() + "   " + gpslocation.getLongitude(), Toast.LENGTH_SHORT).show();
+            Bundle bundle = new Bundle();
+            bundle.putParcelable("gps", gpslocation);
+            alarmIntent.putExtra("bundle", bundle);
+        }
+
+        pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, alarmIntent, 0);
+
+        AlarmManager manager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        int interval = 10000;
+
+        manager.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), interval, pendingIntent);
+        Toast.makeText(this, "Timer started", Toast.LENGTH_LONG).show();
+        isReadyToBeSaved = false;
+    }
 }
