@@ -36,11 +36,11 @@
                 
             </intent-filter>
         </receiver>
-
+        <receiver android:name=".AlarmReceiver" />
         <service
             android:name=".LocationService"
-            android:exported="false"
-            android:enabled="true"/>
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>

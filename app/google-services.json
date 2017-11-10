@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "63474693946",
+    "firebase_url": "https://smarlo-eded2.firebaseio.com",
+    "project_id": "smarlo-eded2",
+    "storage_bucket": "smarlo-eded2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:63474693946:android:f28f71d2a09b14f2",
+        "android_client_info": {
+          "package_name": "com.enpassio.smarlo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "63474693946-ao2l97cstih4q8fparoao0gtpgofjv8o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.enpassio.smarlo",
+            "certificate_hash": "864acdf3d7a365d870e4dd111a0a96fb81eda9d8"
+          }
+        },
+        {
+          "client_id": "63474693946-5kmnk05jtma6f1n85pvqauu6610v7g3g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAA62gqelG4QGvGqQrMafrZ3I2COS9pAtU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "63474693946-5kmnk05jtma6f1n85pvqauu6610v7g3g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
