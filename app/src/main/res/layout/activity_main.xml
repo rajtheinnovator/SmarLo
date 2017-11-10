@@ -11,8 +11,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:autoLink="map"
         android:text="Location not ready!"
-        android:textSize="24sp"
-        android:textColor="#ffaabb"/>
+        android:textColor="#ffaabb"
+        android:textSize="24sp" />
 
 </RelativeLayout>

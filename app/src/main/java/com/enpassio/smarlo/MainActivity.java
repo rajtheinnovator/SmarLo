@@ -41,6 +41,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -265,14 +266,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void readDataFromFirebase() {
-        mLocationDatabaseReference.addValueEventListener(new ValueEventListener() {
+        mLocationDatabaseReference.orderByChild("time").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-
+                locationArrayListOfHashMap = new ArrayList<HashMap<String, Double>>();
                 for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
-                    locationArrayListOfHashMap = new ArrayList<HashMap<String, Double>>();
+
                     double latitude = Double.parseDouble(childDataSnapshot.child("latitude").getValue().toString());
                     double longitude = Double.parseDouble(childDataSnapshot.child("longitude").getValue().toString());
+                    long time = Long.parseLong(childDataSnapshot.child("time").getValue().toString());
 
 
                     Location location = new Location(LocationManager.GPS_PROVIDER);
@@ -283,6 +285,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     HashMap<String, Double> locHashMap = new HashMap<String, Double>();
                     locHashMap.put("latitude", latitude);
                     locHashMap.put("longitude", longitude);
+                    locHashMap.put("time", (double) time);
                     locationArrayListOfHashMap.add(locHashMap);
                 }
             }
@@ -294,17 +297,59 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         });
         Log.v("mmmm", "locationArrayList.size() is: " + locationArrayList.size());
         if (locationArrayList.size() > 1) {
-            double distance = calculateDistanceBetweenLastTwoRecords(locationArrayList);
-            Log.v("mmmm", "distance is: " + distance);
+            float speed = calculateSpeedBetweenLastTwoRecords(locationArrayListOfHashMap);
+            //Log.v("mmmm", "speecd is: " + speed);
+
+            //Toast.makeText(this, "speed is: " + speed, Toast.LENGTH_SHORT).show();
 
         }
     }
 
-    private double calculateDistanceBetweenLastTwoRecords(ArrayList<Location> receivedLocationArrayList) {
+    private float calculateSpeedBetweenLastTwoRecords(ArrayList<HashMap<String, Double>> receivedLocationArrayListOfHashMap) {
 
-        double dist = receivedLocationArrayList.get(receivedLocationArrayList.size() - 1).distanceTo(receivedLocationArrayList.get(receivedLocationArrayList.size() - 2));
+        int iterator = 0;
+        long diffInSec = 0;
+        long time2 = 0;
+        Log.v("mmm", "receivedLocationArrayListOfHashMap.size() is: " + receivedLocationArrayListOfHashMap.size());
+        long time1 = (Double.valueOf(receivedLocationArrayListOfHashMap.get(receivedLocationArrayListOfHashMap.size() - 1).get("time"))).longValue();
+        for (int i = receivedLocationArrayListOfHashMap.size() - 2; i > 0; i--) {
+            time2 = (Double.valueOf(receivedLocationArrayListOfHashMap.get(i).get("time"))).longValue();
+            //long time2 = receivedLocationArrayListOfHashMap.get(i).get("time");
+            long differenceInMilis = time1 - time2;
+            diffInSec = TimeUnit.MILLISECONDS.toSeconds(differenceInMilis);
+            //long differenceInMilis = (new Double(diff)).longValue();
+            Log.v("mmm", "diffInSec is: is: " + diffInSec);
+
+            if (diffInSec > 5) {
+                iterator = i;
+                Log.v("mmm", "iterator is: " + iterator);
+                break;
+            }
+
+        }
+        Location locationA = new Location(LocationManager.GPS_PROVIDER);
+        locationA.setLatitude(receivedLocationArrayListOfHashMap.get(receivedLocationArrayListOfHashMap.size() - 1).get("latitude"));
+        locationA.setLatitude(receivedLocationArrayListOfHashMap.get(receivedLocationArrayListOfHashMap.size() - 1).get("longitude"));
+
+        Location locationB = new Location(LocationManager.GPS_PROVIDER);
+        locationB.setLatitude(receivedLocationArrayListOfHashMap.get(iterator).get("latitude"));
+        locationB.setLatitude(receivedLocationArrayListOfHashMap.get(iterator).get("longitude"));
+
+        float distance = locationA.distanceTo(locationB);
+
+//        Toast.makeText(this, "distance is: " + distance, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "diffInSec is: " + diffInSec, Toast.LENGTH_SHORT).show();
+
+        Log.v("mmm", "time1 is: " + time1);
+        Log.v("mmm", "time2 is: " + time2);
+        Log.v("mmm", "diffInSec is: is: " + diffInSec);
+        float lengthInKm = distance / 1000;
+        long timeInHour = diffInSec / 3600;
+
+        float speedInKnPerHour = lengthInKm / timeInHour;
+
         locationArrayList = new ArrayList<>();
-        return dist;
+        return speedInKnPerHour;
 
     }
 }

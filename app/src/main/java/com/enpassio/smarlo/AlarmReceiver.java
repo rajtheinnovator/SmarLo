@@ -44,6 +44,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mLocationDatabaseReference = mFirebaseDatabase.getReference().child("location");
         mLocationDatabaseReference.push().setValue(location);
+//        long time= System.currentTimeMillis();
+//        mLocationDatabaseReference.child("timeeee").push().setValue(time);
 
         readDataFromFirebase();
 
